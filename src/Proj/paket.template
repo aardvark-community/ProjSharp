@@ -1,0 +1,9 @@
+type project
+id Proj
+authors The Aardvark Platform Team
+projectUrl https://github.com/krauthaufen/ProjSharp
+licenseUrl http://www.apache.org/licenses/LICENSE-2.0.txt
+repositoryType git
+repositoryUrl https://github.com/krauthaufen/ProjSharp
+description
+    Proj
