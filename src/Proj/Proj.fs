@@ -10,6 +10,49 @@ open Aardvark.Base
 #nowarn "9"
 
 
+module internal UnpackData =
+    type Marker = class end
+    open System
+    open System.IO
+    open System.IO.Compression
+
+    let run() =
+        let ass = typeof<Marker>.Assembly
+        let version =
+            ass.GetCustomAttributes(true) 
+            |> Seq.tryPick (function 
+                | :? System.Reflection.AssemblyInformationalVersionAttribute as o -> Some o.InformationalVersion 
+                | _ -> None
+            )
+        
+        let name = 
+            match version with
+            | Some v -> Path.Combine("ProjSharp", v)
+            | None -> "ProjSharp"
+
+        let dataPath = System.IO.Path.Combine(System.Environment.GetFolderPath(System.Environment.SpecialFolder.LocalApplicationData), name)
+
+        if not (Directory.Exists dataPath) then 
+            Directory.CreateDirectory dataPath |> ignore
+
+        match ass.GetManifestResourceNames() |> Array.tryFind (fun r -> r.Trim() = "native.zip") with
+        | Some nativeName ->
+            use archive = new ZipArchive(ass.GetManifestResourceStream(nativeName))
+            for e in archive.Entries do
+                let parts = e.FullName.Replace("\\", "/").Split('/', StringSplitOptions.RemoveEmptyEntries)
+                if parts.Length > 1 && parts.[0] = "data" then
+
+                    let outFile = Path.Combine(dataPath, Path.Combine(parts))
+                    if not (File.Exists outFile) then
+                        let dir = Path.GetDirectoryName outFile
+                        if not (Directory.Exists dir) then Directory.CreateDirectory dir |> ignore
+                        use d = File.OpenWrite outFile
+                        use s = e.Open()
+                        s.CopyTo d
+            Some (Path.Combine(dataPath, "data"))
+        | None ->
+            None
+
 
 module ProjRaw =
 
@@ -39,6 +82,9 @@ module ProjRaw =
         end
 
     [<DllImport("ProjNative")>]
+    extern void pInit([<MarshalAs(UnmanagedType.LPUTF8Str)>] string searchPath);
+
+    [<DllImport("ProjNative")>]
     extern ContextHandle pCreateContext();
     
     [<DllImport("ProjNative")>]
@@ -49,7 +95,7 @@ module ProjRaw =
 
 
     [<DllImport("ProjNative")>]
-    extern CoordinateSystemHandle pCreateCoordinateSystem(ContextHandle context, [<MarshalAs(UnmanagedType.LPStr)>] string definition)
+    extern CoordinateSystemHandle pCreateCoordinateSystem(ContextHandle context, [<MarshalAs(UnmanagedType.LPUTF8Str)>] string definition)
 
     [<DllImport("ProjNative")>]
     extern void pDestroyCoordinateSystem(CoordinateSystemHandle system)
@@ -152,7 +198,15 @@ and CoordinateSystem(parent : Context, handle : ProjRaw.CoordinateSystemHandle, 
         member x.Dispose() = x.Dispose()
 
 and Context() as this =
+
+    static do
+        match UnpackData.run() with
+        | Some path -> ProjRaw.pInit path
+        | None -> ()
+
     let mutable ctx = ProjRaw.pCreateContext()
+
+    
     let cleanup = new System.Collections.Concurrent.BlockingCollection<unit -> int>()
     let mutable refCount = 1
     let mutable isDisposed = false

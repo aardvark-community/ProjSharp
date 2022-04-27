@@ -1,7 +1,12 @@
 #include "ProjNative.h"
 
+DllExport(void) pInit(const char* searchPath) {
+    proj_context_set_search_paths(PJ_DEFAULT_CTX, 1, &searchPath);
+}
+
 DllExport(PJ_CONTEXT*) pCreateContext() {
-    return proj_context_create();
+    auto ctx = proj_context_create();
+    return ctx;
 }
 
 DllExport(void) pDestroyContext(PJ_CONTEXT* context) {

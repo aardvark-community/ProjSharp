@@ -23,6 +23,7 @@ typedef struct {
     double Z;
 } V3d;
 
+DllExport(void) pInit(const char* searchPath);
 DllExport(PJ_CONTEXT*) pCreateContext();
 DllExport(void) pDestroyContext(PJ_CONTEXT* context);
 

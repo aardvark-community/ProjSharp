@@ -34,7 +34,9 @@ src/ProjNative/include
 /.vscode/*.log
 Aardvark.log
 /*/**/.vscode
-/libs
+/libs/Native/Proj/mac
+/libs/Native/Proj/windows
+/libs/Native/Proj/linux
 /.vcpkg
 .vs
 .ionide
