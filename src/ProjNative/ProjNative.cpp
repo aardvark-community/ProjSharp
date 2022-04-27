@@ -47,37 +47,38 @@ DllExport(PJ*) pCreateCoordinateTransformation(PJ_CONTEXT* context, PJ* src, PJ*
 
 DllExport(bool) pTransformArray(PJ* transformation, int count, V3d* points, V3d* outPoints) {
     
-    PJ_COORD* result = new PJ_COORD[count];
+    PJ_XYZT* result = new PJ_XYZT[count];
     for(int i = 0; i < count; i++) {
-        result[i].xyz.x = points[i].X;
-        result[i].xyz.y = points[i].Y;
-        result[i].xyz.z = points[i].Z;
+        result[i].x = points[i].X;
+        result[i].y = points[i].Y;
+        result[i].z = points[i].Z;
+        result[i].t = 0.0;
     }
 
-    auto err = proj_trans_array(transformation, PJ_FWD, count, result);
+    auto err = proj_trans_array(transformation, PJ_FWD, count, (PJ_COORD*)result);
     for(int i = 0; i < count; i++) {
-        outPoints[i].X = result[i].xyz.x;
-        outPoints[i].Y = result[i].xyz.y;
-        outPoints[i].Z = result[i].xyz.z;
+        outPoints[i].X = result[i].x;
+        outPoints[i].Y = result[i].y;
+        outPoints[i].Z = result[i].z;
     }
     delete[] result;
-
     return err == 0;
 }
 
 DllExport(bool) pTransformArray2d(PJ* transformation, int count, V2d* points, V2d* outPoints) {
     
-    PJ_COORD* result = new PJ_COORD[count];
+    PJ_XYZT* result = new PJ_XYZT[count];
     for(int i = 0; i < count; i++) {
-        result[i].xyz.x = points[i].X;
-        result[i].xyz.y = points[i].Y;
-        result[i].xyz.z = 0.0;
+        result[i].x = points[i].X;
+        result[i].y = points[i].Y;
+        result[i].z = 0.0;
+        result[i].t = 0.0;
     }
 
-    auto err = proj_trans_array(transformation, PJ_FWD, count, result);
+    auto err = proj_trans_array(transformation, PJ_FWD, count, (PJ_COORD*)result);
     for(int i = 0; i < count; i++) {
-        outPoints[i].X = result[i].xyz.x;
-        outPoints[i].Y = result[i].xyz.y;
+        outPoints[i].X = result[i].x;
+        outPoints[i].Y = result[i].y;
     }
     delete[] result;
     

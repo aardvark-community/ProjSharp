@@ -314,6 +314,7 @@ type Proj private() =
 
     static member GPS = gps.Value
 
+    static member Context = context
 
     static member Define (definition : string) =
         context.CreateCoordinateSystem definition

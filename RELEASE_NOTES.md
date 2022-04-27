@@ -1,3 +1,6 @@
+### 0.0.4
+* fixed problem with uninitialized memory
+
 ### 0.0.3
 * embedded proj-data
 
